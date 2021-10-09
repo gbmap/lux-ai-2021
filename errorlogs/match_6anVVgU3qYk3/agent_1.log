@@ -1,0 +1,17 @@
+=== Agent Install Log ===
+=== Agent Compile Log ===
+=== Agent Error Log ===
+Traceback (most recent call last):
+  File "main.py", line 33, in <module>
+    actions = agent(observation, None)
+  File "/home/gb6d/code/kaggle/lux-ai/simple/agent.py", line 42, in agent
+    actions.append(worker_act(unit, player, game_state))
+  File "/home/gb6d/code/kaggle/lux-ai/simple/worker_logic.py", line 14, in worker_act
+    target_pos = get_harvest_pos(worker, player, game_state)
+  File "/home/gb6d/code/kaggle/lux-ai/simple/harvest_logic.py", line 57, in get_harvest_pos
+    rule_values = [rule(player, game_state, worker) for rule in rules]
+  File "/home/gb6d/code/kaggle/lux-ai/simple/harvest_logic.py", line 57, in <listcomp>
+    rule_values = [rule(player, game_state, worker) for rule in rules]
+  File "/home/gb6d/code/kaggle/lux-ai/simple/harvest_logic.py", line 30, in rule_city_distance
+    v = min(dists)
+ValueError: min() arg is an empty sequence

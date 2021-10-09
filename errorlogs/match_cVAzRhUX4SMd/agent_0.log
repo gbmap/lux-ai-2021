@@ -1,0 +1,5 @@
+=== Agent Install Log ===
+=== Agent Compile Log ===
+=== Agent Error Log ===
+/home/gb6d/code/kaggle/lux-ai/simple/harvest_logic.py:40: RuntimeWarning: divide by zero encountered in long_scalars
+  v = v / turns_to_night
