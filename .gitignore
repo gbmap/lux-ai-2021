@@ -1,2 +1,3 @@
-./replays/
-./errorlogs/
+replays/
+errorlogs/
+__pycache__/

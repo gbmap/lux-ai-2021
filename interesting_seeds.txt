@@ -1,0 +1,1 @@
+423558862 - pathfinding bug where worker walks on citytile and loses resources to build.

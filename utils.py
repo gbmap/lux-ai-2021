@@ -6,6 +6,8 @@ from lux.game_map import Position, DIRECTIONS
 NIGHT_LENGTH = GAME_CONSTANTS['PARAMETERS']['NIGHT_LENGTH']
 CITY_BUILD_COST = GAME_CONSTANTS["PARAMETERS"]["CITY_BUILD_COST"]
 RESOURCE_TYPES = GAME_CONSTANTS["RESOURCE_TYPES"]
+RESOURCE_TO_FUEL_RATE = GAME_CONSTANTS["PARAMETERS"]["RESOURCE_TO_FUEL_RATE"]
+UNIT_TYPES = GAME_CONSTANTS["UNIT_TYPES"]
 
 logging.basicConfig(filename='log.log',level=logging.DEBUG)
 
@@ -89,4 +91,19 @@ def is_resource_researched(player, resource):
         return player.researched_uranium()
     return True
 
+def get_unit_dict(player):
+    total = len(player.units)
+    unit_dict = {
+        0: 0,
+        1: 0
+    }
+    for unit in player.units:
+        if unit.type not in unit_dict:
+            unit_dict[unit.type] = 0
+        unit_dict[unit.type] = unit_dict[unit.type] + 1
+    return unit_dict
 
+def cargo_to_fuel_amount(cargo):
+    return (cargo.wood*RESOURCE_TO_FUEL_RATE["WOOD"]
+           +cargo.coal*RESOURCE_TO_FUEL_RATE["COAL"]
+           +cargo.coal*RESOURCE_TO_FUEL_RATE["URANIUM"])

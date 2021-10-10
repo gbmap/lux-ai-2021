@@ -4,7 +4,7 @@ import numpy as np
 from lux.game_map import Position, DIRECTIONS
 from lux.game_constants import GAME_CONSTANTS
 
-from utils import is_outside_map, get_city_tiles, get_turns_to_night, log, dirs, NIGHT_LENGTH, get_citytile_fuel_per_turn, normalized_distance, can_worker_build_on, adjacent_dirs, is_resource_researched
+from utils import is_outside_map, get_city_tiles, get_turns_to_night, log, dirs, NIGHT_LENGTH, get_citytile_fuel_per_turn, normalized_distance, can_worker_build_on, adjacent_dirs, is_resource_researched, cargo_to_fuel_amount
 
 def dist(a, b):
     ar = np.array([a.x, a.y])
@@ -20,9 +20,6 @@ def normalize_dist(dist, game_state):
 
 def rule_deliver_resources(player, game_state, worker, pos):
     action = 'move'
-
-    if worker.get_cargo_space_left() > 0:
-        return (0.0, action)
 
     cell = game_state.map.get_cell_by_pos(pos)
     if cell.citytile == None:
@@ -40,6 +37,11 @@ def rule_deliver_resources(player, game_state, worker, pos):
     #fuel_per_turn = get_citytile_fuel_per_turn(game_state, cell.citytile)
     fuel_per_turn = city.get_light_upkeep()
     night_usage = fuel_per_turn * NIGHT_LENGTH
+
+    cargo_fuel = cargo_to_fuel_amount(worker.cargo)
+
+    if cargo_fuel < night_usage:
+        return (0.0, action)
 
     weight = max(0, night_usage - city.fuel) / night_usage
     weight = float(weight > 0.0)

@@ -9,6 +9,7 @@ from lux import annotate
 from utils import log
 
 from worker_logic import workers_work, get_worker_action
+from city_logic import cities_work
 
 DIRECTIONS = Constants.DIRECTIONS
 game_state = None
@@ -42,17 +43,20 @@ def agent(observation, configuration):
                 resource_tiles.append(cell)
 
 
-    can_build_worker = len(player.units) < player.city_tile_count
-    log(f'[{player.team}] Can build worker.')
-    for k, city in player.cities.items():
-        for city_tile in city.citytiles:
-            if city_tile.can_act():
-                if can_build_worker:
-                    # TODO: choose which unit to build
-                    log(f'[{player.team}] Sending build command.')
-                    actions.append(city_tile.build_worker())
-                else:
-                    actions.append(city_tile.research())
+    #can_build_worker = len(player.units) < player.city_tile_count
+    #log(f'[{player.team}] Can build worker.')
+    #for k, city in player.cities.items():
+    #    for city_tile in city.citytiles:
+    #        if city_tile.can_act():
+    #            if can_build_worker:
+    #                # TODO: choose which unit to build
+    #                log(f'[{player.team}] Sending build command.')
+    #                actions.append(city_tile.build_worker())
+    #            else:
+    #                actions.append(city_tile.research())
+    new_actions = cities_work(player, opponent, game_state)
+    if len(new_actions) > 0:
+        actions = actions + new_actions
 
     new_actions = workers_work(player, opponent, game_state)
     if len(new_actions) > 0:
