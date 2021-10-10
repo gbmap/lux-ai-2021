@@ -1,14 +1,19 @@
 import math, sys
+from queue import LifoQueue
+
 from lux.game import Game
 from lux.game_map import Cell, RESOURCE_TYPES
 from lux.constants import Constants
 from lux.game_constants import GAME_CONSTANTS
 from lux import annotate
+from utils import log
 
-from worker_logic import worker_act
+from worker_logic import workers_work, get_worker_action
 
 DIRECTIONS = Constants.DIRECTIONS
 game_state = None
+
+# TODO: Pathfinding maybe?
 
 def agent(observation, configuration):
     global game_state
@@ -37,19 +42,26 @@ def agent(observation, configuration):
                 resource_tiles.append(cell)
 
 
-
+    can_build_worker = len(player.units) < player.city_tile_count
+    log(f'[{player.team}] Can build worker.')
     for k, city in player.cities.items():
-        can_build_worker = len(player.units) < len(city.citytiles)
-        if not can_build_worker:
-            continue
-
         for city_tile in city.citytiles:
             if city_tile.can_act():
-                city_tile.build_worker()
+                if can_build_worker:
+                    # TODO: choose which unit to build
+                    log(f'[{player.team}] Sending build command.')
+                    actions.append(city_tile.build_worker())
+                else:
+                    actions.append(city_tile.research())
 
-    for unit in player.units:
-        if unit.is_worker() and unit.can_act():
-            actions.append(worker_act(unit, player, game_state))
+    new_actions = workers_work(player, opponent, game_state)
+    if len(new_actions) > 0:
+        actions = actions + new_actions
+    #for unit in player.units:
+    #    if unit.is_worker() and unit.can_act():
+    #        worker_action = get_worker_action(unit, player, opponent, game_state)
+    #        worker_action.annotate(actions)
+    #        actions.append(worker_action.command)
         
         #if unit.is_worker() and unit.can_act():
         #    closest_dist = math.inf

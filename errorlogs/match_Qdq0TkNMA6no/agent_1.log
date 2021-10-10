@@ -1,7 +1,0 @@
-=== Agent Install Log ===
-=== Agent Compile Log ===
-=== Agent Error Log ===
-  File "main.py", line 16
-    def __init__(self, player=0) -> None:
-                                 ^
-SyntaxError: invalid syntax

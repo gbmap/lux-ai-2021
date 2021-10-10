@@ -1,9 +1,0 @@
-=== Agent Install Log ===
-=== Agent Compile Log ===
-=== Agent Error Log ===
-Traceback (most recent call last):
-  File "main.py", line 3, in <module>
-    from agent import agent
-  File "/home/gb6d/code/kaggle/lux-ai/simple/agent.py", line 8, in <module>
-    from harvest_logic import worker_act
-ImportError: cannot import name 'worker_act' from 'harvest_logic' (/home/gb6d/code/kaggle/lux-ai/simple/harvest_logic.py)
