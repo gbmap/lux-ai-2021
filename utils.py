@@ -1,9 +1,13 @@
 
 import logging
+from typing import List
 from lux.game_constants import GAME_CONSTANTS
-from lux.game_map import Position, DIRECTIONS
+from lux.game_map import Position, DIRECTIONS, GameMap, Cell
+from lux.game_objects import Player, Unit
 
+DAY_LENGTH = GAME_CONSTANTS['PARAMETERS']['DAY_LENGTH']
 NIGHT_LENGTH = GAME_CONSTANTS['PARAMETERS']['NIGHT_LENGTH']
+WHOLE_DAY_LENGTH = DAY_LENGTH + NIGHT_LENGTH
 CITY_BUILD_COST = GAME_CONSTANTS["PARAMETERS"]["CITY_BUILD_COST"]
 RESOURCE_TYPES = GAME_CONSTANTS["RESOURCE_TYPES"]
 RESOURCE_TO_FUEL_RATE = GAME_CONSTANTS["PARAMETERS"]["RESOURCE_TO_FUEL_RATE"]
@@ -43,29 +47,6 @@ def get_citytile_fuel_per_turn(game_state, citytile):
 
 def get_turns_to_night(game_state):
     return abs(min(0, (game_state.turn % 40) - 30))
-
-def get_cells(player, game_state, cell_type):  # resource, researched resource, player citytile, enemy citytile, empty
-    """
-    Given a cell type, returns a list of Cell objects of the given type
-    Options are: ['resource', 'researched resource', 'player citytile', 'enemy citytile', 'empty']
-    """
-    width = game_state.map.width
-    height = game_state.map.height
-
-    cells_of_type = []
-    for y in range(height):
-        for x in range(width):
-            cell = game_state.map.get_cell(x, y)
-            if (
-                    ( cell_type == 'resource' and cell.has_resource() ) \
-                or ( cell_type == 'researched resource' and cell.has_resource() and researched(cell.resource) ) \
-                or ( cell_type == 'player citytile' and cell.citytile is not None and cell.citytile.team == player ) \
-                or ( cell_type == 'enemy citytile' and cell.citytile is not None and cell.citytile.team != player ) \
-                or ( cell_type == 'empty' and cell.citytile is None and not cell.has_resource() )
-            ):
-                cells_of_type.append(cell)
-    
-    return cells_of_type
 
 def is_outside_map(map, pos):
     return (pos.x < 0 or pos.x >= map.width 
@@ -107,3 +88,22 @@ def cargo_to_fuel_amount(cargo):
     return (cargo.wood*RESOURCE_TO_FUEL_RATE["WOOD"]
            +cargo.coal*RESOURCE_TO_FUEL_RATE["COAL"]
            +cargo.coal*RESOURCE_TO_FUEL_RATE["URANIUM"])
+
+def get_all_units(players : List[Player]) -> List[Unit]:
+    units = []
+    for player in players:
+        units = units + player.units
+    return units
+
+def is_unit_in_cell(cell : Cell, units : List[Unit]) -> bool:
+    return is_unit_in_pos(cell.pos, units)
+
+def is_unit_in_pos(pos : Position, units : List[Unit]) -> bool:
+    return any([unit.pos == pos for unit in units])
+
+def get_units_in_pos(pos : Position, units : List[Unit]) -> Unit:
+    for unit in units:
+        if unit.pos == pos:
+            return unit
+    return None
+
