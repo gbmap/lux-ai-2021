@@ -153,13 +153,13 @@ def get_cell_value(
     target_pos,
     avoidance_map : Dict[str,float]
 ) -> float:
-    # cell_type        = pos_to_cell_type(game_map, player, opponent, pos)
-    # cell_avoidance   = avoidance_map[cell_type]
-    # distance_to_pos  = target_pos.distance_to(pos) * 2
+    cell_type        = pos_to_cell_type(game_map, player, opponent, pos)
+    cell_avoidance   = avoidance_map[cell_type]
+    distance_to_pos  = target_pos.distance_to(pos) * 2
     
-    # # Scale cell_value by its avoidance.
-    # cell_value = distance_to_pos * (1 + cell_avoidance)
-    # return cell_value
+    # Scale cell_value by its avoidance.
+    cell_value = distance_to_pos * (1 + cell_avoidance)
+    return cell_value
     # calculate_cell_weight(
     #     pos.x, pos.y, 
     #     worker, 
@@ -169,8 +169,6 @@ def get_cell_value(
     #     worker_actions, 
     #     rules
     # )
-
-
 
 def get_cell_value_for_movement(
     game_map,
