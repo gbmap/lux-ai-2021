@@ -23,7 +23,7 @@ def cities_work(player, opponent, game_state, unit_allocation=None):
                 percentage_carts   = n_carts   / total
 
                 # no need for carts while no cart AI
-                if percentage_carts < 0.0:
+                if percentage_carts < 0.1:
                     actions.append(city_tile.build_cart())
                 else:
                     actions.append(city_tile.build_worker())

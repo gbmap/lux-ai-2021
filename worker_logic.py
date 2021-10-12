@@ -1,21 +1,35 @@
-from typing import Dict
+from typing import Dict, List, Tuple
 
-from lux.game_map import Position
+from lux.game_map import Position, Cell
 from lux import annotate
 
-from harvest_logic import get_action, calculate_cell_weight
-from pathfinding import get_lowest_neighbor_weight, action_to_avoidance_map
+from harvest_logic import get_action
+from pathfinding import get_lowest_neighbor_weight, action_to_avoidance_map, get_neighbor_cells
 
-from utils import log
+from utils import log, get_most_abundant_resource, get_resource_from_cargo
 import pathfinding
+import rules
 
-actions = [
-    'HARVEST',
-    'SABOTAGE',
-    'BUILD'
+worker_rules = [
+#    (rules.rule_collect_resources, 0.2),
+    (rules.rule_collect_resources, 1.0),
+    (rules.rule_deliver_resources, 1.0),
+#    (rules.rule_build, 0.2),
+    (rules.rule_build, 1.0),
+    (rules.rule_avoid_units, 1.0),
+    (rules.rule_avoid_field_if_no_fuel, 1.0),
+    (rules.rule_avoid_other_target_positions, 1.0),
+    (rules.rule_transfer_to_cart, 1.0)
+#   (rule_avoid_city_tile_if_building, 0.5)
 ]
 
-class WorkerAction:
+cart_rules = [
+    (rules.rule_random, 1.0),
+    (rules.rule_avoid_field_if_no_fuel, 1.0),
+    (rules.rule_avoid_other_target_positions, 1.0)
+]
+
+class UnitAction:
     def __init__(
         self,
         worker_id,
@@ -23,14 +37,16 @@ class WorkerAction:
         target_action,
         new_pos,
         command,
+        neighbor_cell_values : List[Tuple[Cell, float]] = None,
         path = None
     ):
-        self.worker_id     = worker_id
-        self.target_pos    = target_pos
-        self.target_action = target_action
-        self.new_pos       = new_pos
-        self.command       = command
-        self.path          = path
+        self.worker_id            = worker_id
+        self.target_pos           = target_pos
+        self.target_action        = target_action
+        self.new_pos              = new_pos
+        self.command              = command
+        self.neighbor_cell_values = neighbor_cell_values
+        self.path                 = path
 
     def __eq__(self, o):
         return (
@@ -49,6 +65,27 @@ class WorkerAction:
         y = self.target_pos.y
         actions.append(annotate.text(x, y, self.target_action, 64))
 
+        if self.neighbor_cell_values is not None:
+            for cell, value in self.neighbor_cell_values:
+                actions.append(
+                    annotate.text(
+                        cell.pos.x, cell.pos.y, 
+                        round(value,2), fontsize=64
+                    )
+                )
+
+        if self.new_pos is not None:
+            actions.append(
+                annotate.x(self.new_pos.x, self.new_pos.y)
+            )
+
+        if self.target_pos is not None:
+            actions.append(
+                annotate.circle(
+                    self.target_pos.x, self.target_pos.y
+                )
+            )
+
         if self.path is None:
             return
 
@@ -64,49 +101,59 @@ class WorkerAction:
                 pcell.pos.x, pcell.pos.y
             ))
 
+        
 
-# lol
-def workers_work(player, opponent, game_state):
+def units_work(player, opponent, game_state):
     actions = []
-    worker_actions = {}
+    unit_action_map = {}
     for unit in player.units:
-        if unit.is_worker() and unit.can_act():
-            worker_action = get_worker_action(unit, player, opponent, game_state, worker_actions)
-            worker_action.annotate(actions)
-            actions.append(worker_action.command)
+        if unit.can_act():
+            if unit.is_worker():
+                unit_rules = worker_rules
+            elif unit.is_cart():
+                unit_rules = cart_rules
+
+            action = get_unit_action(
+                unit, 
+                player, 
+                opponent, 
+                game_state, 
+                unit_action_map, 
+                unit_rules
+            )
+            action.annotate(actions)
+            if action.command is not None:
+                actions.append(action.command)
 
             # Add action to dictionary
-            worker_actions[unit.id] = worker_action
-    
+            unit_action_map[unit.id] = action
     return actions
 
-def get_worker_action(
+def get_unit_action(
     worker, 
     player, 
     opponent, 
     game_state, 
-    worker_actions
+    worker_actions,
+    rules
 ):
-    target_pos, action = get_action(worker, player, opponent, game_state, worker_actions)
-
-    #path = pathfinding.get_path_to(
-    #    game_state.map, 
-    #    player, 
-    #    opponent, 
-    #    worker.pos, 
-    #    target_pos
-    #)
+    target_pos, action = get_action(
+        worker, 
+        player, 
+        opponent, 
+        game_state, 
+        worker_actions, 
+        rules
+    )
 
     command = None
-    new_pos = None
+    new_pos = worker.pos
+    cell_weights = None
     if (
-        action == 'move' or 
-        worker.pos.distance_to(target_pos) > 0
+        worker.pos.distance_to(target_pos) > action_to_minimum_dist(action)
     ):
-        #new_pos = worker.pos.translate(direction, 1)
-
-        # Check if new position is valid.
-        lowest_neighbor_weight = get_lowest_neighbor_weight(
+        # Shitty pathfinding.
+        cell_weights = get_neighbor_cells(
             game_state.map, 
             player, 
             opponent, 
@@ -114,6 +161,28 @@ def get_worker_action(
             target_pos, 
             action_to_avoidance_map(action)
         )
+
+        lowest_neighbor_weight = min(
+            cell_weights, key=lambda n: n[1]
+        )
+
+        #lowest_neighbor_weight = get_lowest_neighbor_weight(
+        #    game_state.map, 
+        #    player, 
+        #    opponent, 
+        #    worker.pos, 
+        #    target_pos, 
+        #    action_to_avoidance_map(action)
+        #)
+
+        #lowest_neighbor_weight = get_lowest_neighbor_weight(
+        #    game_state.map, 
+        #    player, 
+        #    opponent, 
+        #    worker.pos, 
+        #    target_pos, 
+        #    action_to_avoidance_map(action)
+        #)
 
         new_pos = lowest_neighbor_weight[0].pos
         direction = worker.pos.direction_to(new_pos)
@@ -127,12 +196,29 @@ def get_worker_action(
         log('Worker is attempting to pillage.')
         command = worker.pillage()
 
-    return WorkerAction(
+    elif 'transfer' in action:
+        action, transfer_id = action.split(';')
+        resource_type = get_most_abundant_resource(worker.cargo)
+        amount = get_resource_from_cargo(worker.cargo, resource_type)
+        command = worker.transfer(transfer_id, resource_type, amount)
+
+    return UnitAction(
         worker.id, 
         target_pos, 
         action, 
         new_pos,
         command,
+        cell_weights
 #        path
     )
 
+map_action_to_minimum_dist = {
+    'move': 0,
+    'build': 0,
+    'pillage': 0,
+    'transfer': 1
+}
+
+def action_to_minimum_dist(action):
+    action = action.split(';')[0]
+    return map_action_to_minimum_dist[action]

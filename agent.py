@@ -8,7 +8,7 @@ from lux.game_constants import GAME_CONSTANTS
 from lux import annotate
 from utils import log
 
-from worker_logic import workers_work, get_worker_action
+from worker_logic import units_work
 from city_logic import cities_work
 
 DIRECTIONS = Constants.DIRECTIONS
@@ -58,9 +58,10 @@ def agent(observation, configuration):
     if len(new_actions) > 0:
         actions = actions + new_actions
 
-    new_actions = workers_work(player, opponent, game_state)
+    new_actions = units_work(player, opponent, game_state)
     if len(new_actions) > 0:
         actions = actions + new_actions
+
     #for unit in player.units:
     #    if unit.is_worker() and unit.can_act():
     #        worker_action = get_worker_action(unit, player, opponent, game_state)
