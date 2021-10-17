@@ -56,7 +56,7 @@ space = {
     'resource_collect_weight': (0.0, 1.0),
     'resource_build_weight' : (0.0, 1.0),
     'citytile_build_weight' : (0.0, 1.0),
-    'max_distance_to_night' : (0, 10),
+    'max_distance_to_night' : (1, 10),
     'min_distance_to_cart_transfer' : (1, 10),
     'max_carts' : (0, 10),
     'distance_decay' : (0.0, 10.0),
@@ -80,7 +80,6 @@ space = {
         (0.0, 5.0)
     ]
 }
-
 
 def from_space(space : Dict[str, Tuple[Any,Any]]) -> Hyperparams:
     hp = Hyperparams()
