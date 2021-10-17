@@ -7,33 +7,23 @@ from lux.game_map import Position, DIRECTIONS
 from utils import is_outside_map, get_city_tiles, get_turns_to_night, log, dirs, NIGHT_LENGTH, get_citytile_fuel_per_turn, normalized_distance, can_worker_build_on, adjacent_dirs, is_researched, cargo_to_fuel_amount, get_units_in_pos, get_all_units, DAY_LENGTH, WHOLE_DAY_LENGTH
 import rules
 
-worker_action_map : Dict[str, str] = {}
-
 def get_action(
     worker, 
     player, 
     opponent, 
     game_state, 
     worker_actions,
-    rules = None
+    rules,
+    hparams,
 ):
-    if rules is None:
-        rules = [
-            (rules.rule_collect_resources, 0.2),
-            (rules.rule_deliver_resources, 10.0),
-            (rules.rule_build, 0.2),
-            (rules.rule_avoid_units, 0.5),
-            (rules.rule_avoid_field_if_no_fuel, 0.5)
-#            (rule_avoid_city_tile_if_building, 0.5)
-        ]
-
     possible_actions = get_possible_actions(
         worker, 
         player, 
         opponent, 
         game_state, 
         worker_actions, 
-        rules
+        rules,
+        hparams
     )
 
     cell_rule_data = select_best_action(
@@ -62,7 +52,8 @@ def get_possible_actions(
     opponent,
     game_state,
     worker_actions,
-    rules
+    rules,
+    hparams
 ) -> List: 
 
     w = game_state.map.width
@@ -80,7 +71,8 @@ def get_possible_actions(
                 opponent,
                 game_state,
                 worker_actions,
-                rules
+                rules,
+                hparams
             )
 
             cell_weight  = cell_rule_data[2] 
@@ -117,7 +109,8 @@ def calculate_cell_weight(
     opponent,
     game_state,
     worker_actions,
-    rules
+    rules,
+    hparams
 ):
     pos = Position(x,y)
 
@@ -128,7 +121,7 @@ def calculate_cell_weight(
     rule_weights   = rules[1]
 
     # Calculate cell weight for each rule
-    rule_results   = [rule(player, game_state, worker, pos, worker_actions) for rule in rule_functions]
+    rule_results   = [rule(player, game_state, worker, pos, worker_actions, hparams) for rule in rule_functions]
 
     # Scale each rule weight by rule's weight
     rule_values    = [r[0]*rule_weights[i] for i, r in enumerate(rule_results)]

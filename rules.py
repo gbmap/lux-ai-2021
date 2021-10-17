@@ -1,15 +1,34 @@
 
 import random
 import utils
+from typing import List, Tuple, Any
 from utils import is_outside_map, get_city_tiles, get_turns_to_night, log, dirs, NIGHT_LENGTH, get_citytile_fuel_per_turn, normalized_distance, can_worker_build_on, adjacent_dirs, is_researched, cargo_to_fuel_amount, get_units_in_pos, get_all_units, DAY_LENGTH, WHOLE_DAY_LENGTH
-from hyperparams import hparams
+from hyperparams import UnitRuleWeights
+
+# RULE ORDER
+# rule_array = [
+#     rule_random,
+#     rule_collect_resources,
+#     rule_deliver_resources,
+#     rule_build,
+#     rule_avoid_units,
+#     rule_avoid_field_if_no_fuel,
+#     rule_avoid_other_target_positions
+# ]
+
+def generate_rule_array(weights : UnitRuleWeights) -> List[Tuple[Any, float]]:
+    if len(weights.weights) < len(rule_array):
+        raise Exception(f'Expecting a weight list of {len(rule_array)} values.')
+    
+    return list(zip(rule_array, weights.weights))
 
 def rule_deliver_resources(
     player, 
     game_state, 
     worker, 
     pos, 
-    worker_actions
+    worker_actions,
+    hparams
 ):
     action = 'move'
 
@@ -18,6 +37,9 @@ def rule_deliver_resources(
         return (0.0, action)
 
     if player.team != cell.citytile.team:
+        return (0.0, action)
+
+    if worker.get_cargo_space_left() > 0:
         return (0.0, action)
 
     city = player.cities[cell.citytile.cityid]
@@ -46,7 +68,8 @@ def rule_collect_resources(
     game_state, 
     worker, 
     pos, 
-    worker_actions
+    worker_actions,
+    hparams
 ):
     """
     Rule for collecting resources.
@@ -72,9 +95,13 @@ def rule_collect_resources(
         cell_value = cell_value + cell_resource_weight # * cell.resource.amount/100
 
     dist = utils.normalized_distance(game_state, worker.pos, pos)
-
-    # Make more distant cells less desirable
-    cell_value = cell_value * pow(1.0 - dist, 5.0)
+    cell_value = decay_distance(
+        game_state, 
+        cell_value, 
+        worker.pos, 
+        pos,
+        hparams.distance_decay
+    )
     return (cell_value, 'move')
 
 def rule_build(
@@ -82,7 +109,8 @@ def rule_build(
     game_state, 
     worker, 
     pos, 
-    worker_actions
+    worker_actions,
+    hparams
 ):
     if not utils.can_worker_build_on(game_state.map, worker, pos):
         return (0.0, 'build')
@@ -122,7 +150,8 @@ def rule_avoid_units(
     game_state, 
     worker, 
     pos, 
-    worker_actions
+    worker_actions,
+    hparams
 ):
     units = utils.get_all_units(game_state.players)
     unit_in_pos = utils.get_units_in_pos(pos, units)
@@ -135,7 +164,8 @@ def rule_avoid_field_if_no_fuel(
     game_state, 
     worker, 
     pos, 
-    worker_actions
+    worker_actions,
+    hparams
 ):
     is_night = (game_state.turn % utils.WHOLE_DAY_LENGTH) > utils.DAY_LENGTH
     distance_to_cell = worker.pos.distance_to(pos)
@@ -167,7 +197,8 @@ def rule_avoid_city_tile_if_building(
     game_state, 
     worker, 
     pos, 
-    worker_actions
+    worker_actions,
+    hparams
 ):
     if worker.id not in worker_actions:
         return (0.0, 'move')
@@ -188,7 +219,8 @@ def rule_transfer_to_cart(
     game_state,
     worker,
     pos,
-    worker_actions
+    worker_actions,
+    hparams
 ):
     if pos.distance_to(worker.pos) > hparams.max_distance_to_night:
         return (0.0, 'move')
@@ -212,7 +244,8 @@ def rule_avoid_other_target_positions(
     game_state,
     worker,
     pos,
-    worker_actions
+    worker_actions,
+    hparams
 ):
     for key, action in worker_actions.items():
         if action.worker_id == worker.id:
@@ -229,7 +262,8 @@ def rule_patrol(
     game_state,
     worker,
     pos,
-    worker_actions
+    worker_actions,
+    hparams
 ):
     pass
 
@@ -238,6 +272,34 @@ def rule_random(
     game_state,
     worker,
     pos,
-    worker_actions
+    worker_actions,
+    hparams
 ):
     return ((random.random()-0.5)*2.0, 'move')
+
+def rule_avoid_far_cells(
+    player,
+    game_state,
+    worker, 
+    pos, 
+    worker_actions,
+    hparams
+):
+    return (-utils.normalized_distance(game_state,worker.pos, pos), 'move')
+
+def decay_distance(game_state, cell_value, posA, posB, distance_decay):
+    dist = utils.normalized_distance(game_state, posA, posB)
+
+    # Make more distant cells less desirable
+    cell_value = cell_value * pow(1.0 - dist, distance_decay)
+    return cell_value
+
+rule_array = [
+    rule_random,
+    rule_collect_resources,
+    rule_deliver_resources,
+    rule_build,
+    rule_avoid_units,
+    rule_avoid_field_if_no_fuel,
+    rule_avoid_other_target_positions
+]

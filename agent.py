@@ -1,5 +1,5 @@
 import math, sys
-from queue import LifoQueue
+from typing import Dict
 
 from lux.game import Game
 from lux.game_map import Cell, RESOURCE_TYPES
@@ -14,8 +14,39 @@ from city_logic import cities_work
 DIRECTIONS = Constants.DIRECTIONS
 game_state = None
 
-# TODO: Pathfinding maybe?
-
+def run(config):
+    def read_input():
+        """
+        Reads input from stdin
+        """
+        try:
+            return input()
+        except EOFError as eof:
+            raise SystemExit(eof)
+    step = 0
+    class Observation(Dict[str, any]):
+        def __init__(self, player=0): 
+            self.player = player
+            # self.updates = []
+            # self.step = 0
+    observation = Observation()
+    observation["updates"] = []
+    observation["step"] = 0
+    player_id = 0
+    while True:
+        inputs = read_input()
+        observation["updates"].append(inputs)
+        
+        if step == 0:
+            player_id = int(observation["updates"][0])
+            observation.player = player_id
+        if inputs == "D_DONE":
+            actions = agent(observation, config)
+            observation["updates"] = []
+            step += 1
+            observation["step"] = step
+            print(",".join(actions))
+            print("D_FINISH")
 def agent(observation, configuration):
     global game_state
 
@@ -42,62 +73,12 @@ def agent(observation, configuration):
             if cell.has_resource():
                 resource_tiles.append(cell)
 
-
-    #can_build_worker = len(player.units) < player.city_tile_count
-    #log(f'[{player.team}] Can build worker.')
-    #for k, city in player.cities.items():
-    #    for city_tile in city.citytiles:
-    #        if city_tile.can_act():
-    #            if can_build_worker:
-    #                # TODO: choose which unit to build
-    #                log(f'[{player.team}] Sending build command.')
-    #                actions.append(city_tile.build_worker())
-    #            else:
-    #                actions.append(city_tile.research())
-    new_actions = cities_work(player, opponent, game_state)
+    new_actions = cities_work(player, opponent, game_state, configuration)
     if len(new_actions) > 0:
         actions = actions + new_actions
 
-    new_actions = units_work(player, opponent, game_state)
+    new_actions = units_work(player, opponent, game_state, configuration) 
     if len(new_actions) > 0:
         actions = actions + new_actions
-
-    #for unit in player.units:
-    #    if unit.is_worker() and unit.can_act():
-    #        worker_action = get_worker_action(unit, player, opponent, game_state)
-    #        worker_action.annotate(actions)
-    #        actions.append(worker_action.command)
-        
-        #if unit.is_worker() and unit.can_act():
-        #    closest_dist = math.inf
-        #    closest_resource_tile = None
-        #    if unit.get_cargo_space_left() > 0:
-        #        # if the unit is a worker and we have space in cargo, lets find the nearest resource tile and try to mine it
-        #        for resource_tile in resource_tiles:
-        #            if resource_tile.resource.type == Constants.RESOURCE_TYPES.COAL and not player.researched_coal(): continue
-        #            if resource_tile.resource.type == Constants.RESOURCE_TYPES.URANIUM and not player.researched_uranium(): continue
-        #            dist = resource_tile.pos.distance_to(unit.pos)
-        #            if dist < closest_dist:
-        #                closest_dist = dist
-        #                closest_resource_tile = resource_tile
-        #        if closest_resource_tile is not None:
-        #            actions.append(unit.move(unit.pos.direction_to(closest_resource_tile.pos)))
-        #    else:
-        #        # if unit is a worker and there is no cargo space left, and we have cities, lets return to them
-        #        if len(player.cities) > 0:
-        #            closest_dist = math.inf
-        #            closest_city_tile = None
-        #            for k, city in player.cities.items():
-        #                for city_tile in city.citytiles:
-        #                    dist = city_tile.pos.distance_to(unit.pos)
-        #                    if dist < closest_dist:
-        #                        closest_dist = dist
-        #                        closest_city_tile = city_tile
-        #            if closest_city_tile is not None:
-        #                move_dir = unit.pos.direction_to(closest_city_tile.pos)
-        #                actions.append(unit.move(move_dir))
-
-    # you can add debug annotations using the functions in the annotate object
-    # actions.append(annotate.circle(0, 0))
     
     return actions

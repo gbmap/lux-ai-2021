@@ -2,7 +2,7 @@ from agent import run
 from hyperparams import Hyperparams, UnitRuleWeights, load
 from utils import log
 
-FILENAME = '1.agent'
+FILENAME = '2.agent'
 config = {
     'hparams': load(FILENAME)
 }

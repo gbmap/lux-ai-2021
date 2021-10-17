@@ -1,30 +1,120 @@
+from dataclasses import dataclass, field
+from typing import List, Dict, Tuple, Any
+import random
+import json
+import pickle
 
-class Hyperparams:
-    def __init__(
-        self,
-        # Value of resource cell when collecting
-        # resources.
-        resource_collect_weight=0.025,
+@dataclass
+class UnitRuleWeights:
+    weights : List[float] = field(
+        default_factory = lambda: [0.0, 1.0, 1.0, 2.0, 0.1, 0.2, 1.0, 1.0]
+    )
 
-        # Value of resource cell when building
-        resource_build_weight=0.0825,
-        
-        # value of citytile cell when building
-        citytile_build_weight=0.25,
+@dataclass 
+class Hyperparams():
+    # Value of resource cell when collecting
+    # resources.
+    resource_collect_weight : float = 0.025
 
-        # the maximum distance to the first
-        # night turn when calculating
-        # open field avoidance
-        max_distance_to_night=5,
+    # Value of resource cell when building
+    resource_build_weight : float = 0.26
 
-        # minimum distance to consider
-        # transfering resources to nearby carts
-        min_distance_to_cart_transfer=2
-    ):
-        self.resource_collect_weight = resource_collect_weight
-        self.resource_build_weight   = resource_build_weight
-        self.citytile_build_weight   = citytile_build_weight
-        self.max_distance_to_night   = max_distance_to_night
-        self.max_distance_to_night   = min_distance_to_cart_transfer
+    # Value of citytile cell when building
+    citytile_build_weight : float = 0.25
 
-hparams = Hyperparams()
+    # the maximum distance to the first
+    # night turn when calculating
+    # open field avoidance
+    max_distance_to_night : int = 5
+
+    # minimum distance to consider
+    # transfering resources to nearby carts
+    min_distance_to_cart_transfer : int = 2
+
+    # max number of carts to be built
+    max_carts : int = 0
+
+    # distance decay exponent
+    distance_decay : float =5.0
+
+    worker_rule_weights : UnitRuleWeights = UnitRuleWeights(
+        [0.0, 1.0, 1.0, 2.0, 0.1, 0.2, 1.0, 1.0]
+    )
+
+    cart_rule_weights : UnitRuleWeights = UnitRuleWeights(
+        [1.0, 0.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0]
+    )
+
+    def __repr__(self):
+        s = 'Hyperparameters ('
+        for key, value in self.__dict__.items():
+            s = f'{s}\n\t{key}: {self.__dict__[key].__repr__()}'
+        s = f'{s}\n)'
+        return s
+            
+space = {
+    'resource_collect_weight': (0.0, 1.0),
+    'resource_build_weight' : (0.0, 1.0),
+    'citytile_build_weight' : (0.0, 1.0),
+    'max_distance_to_night' : (0, 10),
+    'min_distance_to_cart_transfer' : (1, 10),
+    'max_carts' : (0, 10),
+    'distance_decay' : (0.0, 10.0),
+    'worker_rule_weights' : [
+        (0.0, 5.0),
+        (0.0, 5.0),
+        (0.0, 5.0),
+        (0.0, 5.0),
+        (0.0, 5.0),
+        (0.0, 5.0),
+        (0.0, 5.0)
+    ],
+
+    'cart_rule_weights' : [
+        (0.0, 5.0),
+        (0.0, 5.0),
+        (0.0, 5.0),
+        (0.0, 5.0),
+        (0.0, 5.0),
+        (0.0, 5.0),
+        (0.0, 5.0)
+    ]
+}
+
+
+def from_space(space : Dict[str, Tuple[Any,Any]]) -> Hyperparams:
+    hp = Hyperparams()
+    for key, value in space.items():
+        if type(value) is list:
+            hp.__dict__[key] = UnitRuleWeights([
+                type_to_generator(type(vi[0]))(vi[0], vi[1]) for vi in value
+            ])
+        else:
+            hp.__dict__[key] = type_to_generator(
+                type(value[0]))(value[0], value[1]
+            )
+
+    return hp
+
+def type_to_generator(t : type):
+    if t is int:
+        return random.randint
+    elif t is float:
+        return random.uniform
+
+    return random.uniform
+
+def load(name : str) -> Hyperparams:
+    return pickle.load(open(name, 'rb'))
+
+def save(name : str, hp : Hyperparams) -> bool:
+    pickle.dump(hp, open(name, 'wb'))
+
+if __name__ == '__main__':
+    hp = Hyperparams()
+    save('2.agent', hp)
+    hp2 = load('2.agent')
+
+    print(hp == hp2)
+
+

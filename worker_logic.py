@@ -10,24 +10,8 @@ from utils import log, get_most_abundant_resource, get_resource_from_cargo
 import pathfinding
 import rules
 
-worker_rules = [
-#    (rules.rule_collect_resources, 0.2),
-    (rules.rule_collect_resources, 1.0),
-    (rules.rule_deliver_resources, 1.0),
-#    (rules.rule_build, 0.2),
-    (rules.rule_build, 1.0),
-    (rules.rule_avoid_units, 1.0),
-    (rules.rule_avoid_field_if_no_fuel, 1.0),
-    (rules.rule_avoid_other_target_positions, 1.0),
-    (rules.rule_transfer_to_cart, 1.0)
-#   (rule_avoid_city_tile_if_building, 0.5)
-]
-
-cart_rules = [
-    (rules.rule_random, 1.0),
-    (rules.rule_avoid_field_if_no_fuel, 1.0),
-    (rules.rule_avoid_other_target_positions, 1.0)
-]
+worker_rules = None 
+cart_rules   = None
 
 class UnitAction:
     def __init__(
@@ -103,7 +87,18 @@ class UnitAction:
 
         
 
-def units_work(player, opponent, game_state):
+def units_work(player, opponent, game_state, configuration):
+    global worker_rules 
+    global cart_rules
+    hparams = configuration['hparams']
+
+    # Shitty code beware
+    if worker_rules is None:
+        worker_rules = rules.generate_rule_array(hparams.worker_rule_weights)
+    
+    if cart_rules is None:
+        cart_rules = rules.generate_rule_array(hparams.cart_rule_weights)
+
     actions = []
     unit_action_map = {}
     for unit in player.units:
@@ -119,7 +114,8 @@ def units_work(player, opponent, game_state):
                 opponent, 
                 game_state, 
                 unit_action_map, 
-                unit_rules
+                unit_rules,
+                hparams
             )
             action.annotate(actions)
             if action.command is not None:
@@ -135,7 +131,8 @@ def get_unit_action(
     opponent, 
     game_state, 
     worker_actions,
-    rules
+    rules,
+    hparams
 ):
     target_pos, action = get_action(
         worker, 
@@ -143,7 +140,8 @@ def get_unit_action(
         opponent, 
         game_state, 
         worker_actions, 
-        rules
+        rules,
+        hparams
     )
 
     command = None
