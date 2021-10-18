@@ -13,7 +13,7 @@ from hyperparams import UnitRuleWeights
 #     rule_build,
 #     rule_avoid_units,
 #     rule_avoid_field_if_no_fuel,
-#     rule_avoid_other_target_positions
+#     rule_avoid_other_target_positions,
 # ]
 
 def generate_rule_array(weights : UnitRuleWeights) -> List[Tuple[Any, float]]:
@@ -52,7 +52,7 @@ def rule_deliver_resources(
     fuel_per_turn = city.get_light_upkeep()
     night_usage = fuel_per_turn * utils.NIGHT_LENGTH
 
-    cargo_fuel = utils.cargo_to_fuel_amount(worker.cargo)
+    # cargo_fuel = utils.cargo_to_fuel_amount(worker.cargo)
 
     # This is preventing agents from
     # delivering during the day.
@@ -143,6 +143,13 @@ def rule_build(
             resource_weight = resource_build_weight #* resource.amount/100
             build_points = build_points + resource_weight
 
+    build_points = decay_distance(
+        game_state, 
+        build_points, 
+        worker.pos, 
+        pos,
+        hparams.distance_decay
+    )
     return (build_points, 'build')
 
 def rule_avoid_units(
@@ -285,7 +292,8 @@ def rule_avoid_far_cells(
     worker_actions,
     hparams
 ):
-    return (-utils.normalized_distance(game_state,worker.pos, pos), 'move')
+    td = -utils.normalized_distance(game_state,worker.pos, pos)
+    return (td, 'move')
 
 def decay_distance(game_state, cell_value, posA, posB, distance_decay):
     dist = utils.normalized_distance(game_state, posA, posB)

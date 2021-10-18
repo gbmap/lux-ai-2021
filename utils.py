@@ -54,7 +54,7 @@ def is_outside_map(map, pos):
 
 def normalized_distance(game_state, posA, posB):
     sz = Position(game_state.map.width, game_state.map.height)
-    return posA.distance_to(posB) / (sz.x+sz.y)
+    return float(posA.distance_to(posB)) / (sz.x+sz.y)
 
 def can_worker_build_on(map, worker, pos):
     cell = map.get_cell_by_pos(pos)

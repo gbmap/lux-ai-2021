@@ -1,11 +1,11 @@
+
 from agent import run
 from hyperparams import Hyperparams, UnitRuleWeights, load
 from utils import log
 
-FILENAME = './agents/1_9e0abe7248.agent'
-params = load(FILENAME)
+FILENAME = './e2a8b66227.agent'
 config = {
-    'hparams': params
+    'hparams': load(FILENAME)
 }
 
 if __name__ == "__main__":

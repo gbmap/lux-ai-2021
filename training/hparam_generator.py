@@ -3,6 +3,19 @@ import numpy as np
 import itertools
 
 SPACE_INTERVAL = 5
+main_template = """
+from agent import run
+from hyperparams import Hyperparams, UnitRuleWeights, load
+from utils import log
+
+FILENAME = '<file>'
+config = {
+    'hparams': load(FILENAME)
+}
+
+if __name__ == "__main__":
+    run(config)
+"""
 
 def value_to_space(key, value):
     return np.linspace(
@@ -43,6 +56,14 @@ def indexes_to_hparams(indexes, hparams_space):
 
     return hparam_list
 
+def save_agent(
+    hp : hparams.Hyperparams,
+    agent_name : str
+):
+    agent_filename = f'{agent_name}.agent'
+    hparams.save(agent_filename, hp)
+    with open(f'{agent_name}.py', 'w') as f:
+        f.write(main_template.replace('<file>', agent_filename))
 
 if __name__ == '__main__':
     hparams_space, n_dimensions = generate_values()

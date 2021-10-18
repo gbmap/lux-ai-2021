@@ -1,3 +1,3 @@
 sudo rm -r ./replays/*.json
 sudo rm log.log
-sudo lux-ai-2021 main_agent1.py main_agent2.py --width 32 --height 32
+sudo lux-ai-2021 main_agent1.py main_agent2.py

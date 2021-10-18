@@ -4,7 +4,7 @@ from utils import log
 
 FILENAME = './agents/tournament-1/9.agent'
 config = {
-    'hparams': load(FILENAME)
+    'hparams': Hyperparams()
 }
 
 if __name__ == "__main__":
