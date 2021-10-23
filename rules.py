@@ -1,19 +1,20 @@
 
 import random
 import utils
+from lux.game_map import DIRECTIONS
 from typing import List, Tuple, Any
 from utils import is_outside_map, get_city_tiles, get_turns_to_night, log, dirs, NIGHT_LENGTH, get_citytile_fuel_per_turn, normalized_distance, can_worker_build_on, adjacent_dirs, is_researched, cargo_to_fuel_amount, get_units_in_pos, get_all_units, DAY_LENGTH, WHOLE_DAY_LENGTH
 from hyperparams import UnitRuleWeights
 
 # RULE ORDER
 # rule_array = [
-#     rule_random,
-#     rule_collect_resources,
-#     rule_deliver_resources,
-#     rule_build,
-#     rule_avoid_units,
-#     rule_avoid_field_if_no_fuel,
-#     rule_avoid_other_target_positions,
+#     rule_random, = 0.0
+#     rule_collect_resources, = 1.0
+#     rule_deliver_resources, = 0.25
+#     rule_build,             = 1.0
+#     rule_avoid_units,       = 0.5
+#     rule_avoid_field_if_no_fuel, =  0.5
+#     rule_avoid_other_target_positions, = 0.75
 # ]
 
 def generate_rule_array(weights : UnitRuleWeights) -> List[Tuple[Any, float]]:
@@ -79,6 +80,8 @@ def rule_collect_resources(
 
     cell_resource_weight = hparams.resource_collect_weight
     cell_value = 0.0
+    center_has_resource = False
+    low_resources = False
     for _dir in utils.dirs:
         npos = pos.translate(_dir, 1)
 
@@ -89,10 +92,20 @@ def rule_collect_resources(
 
         # TODO: improve cell evaluation
         # based on resource level and availability
-        if not cell.has_resource() or not utils.is_researched(player, cell.resource):
+        if not cell.has_resource():
+            if cell.citytile is not None:
+                cell_value -= cell_resource_weight
             continue
+        elif not utils.is_researched(player, cell.resource):
+            cell_value -= cell_resource_weight
+
+        if _dir == DIRECTIONS.CENTER:
+            center_has_resource = True
 
         cell_value = cell_value + cell_resource_weight # * cell.resource.amount/100
+
+    if center_has_resource:
+        cell_value = cell_value*1.25
 
     dist = utils.normalized_distance(game_state, worker.pos, pos)
     cell_value = decay_distance(

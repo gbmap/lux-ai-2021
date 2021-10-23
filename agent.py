@@ -10,43 +10,14 @@ from utils import log
 
 from worker_logic import units_work
 from city_logic import cities_work
+from hyperparams import Hyperparams
 
 DIRECTIONS = Constants.DIRECTIONS
 game_state = None
+config = {
+    'hparams': Hyperparams()
+}
 
-def run(config):
-    def read_input():
-        """
-        Reads input from stdin
-        """
-        try:
-            return input()
-        except EOFError as eof:
-            raise SystemExit(eof)
-    step = 0
-    class Observation(Dict[str, any]):
-        def __init__(self, player=0): 
-            self.player = player
-            # self.updates = []
-            # self.step = 0
-    observation = Observation()
-    observation["updates"] = []
-    observation["step"] = 0
-    player_id = 0
-    while True:
-        inputs = read_input()
-        observation["updates"].append(inputs)
-        
-        if step == 0:
-            player_id = int(observation["updates"][0])
-            observation.player = player_id
-        if inputs == "D_DONE":
-            actions = agent(observation, config)
-            observation["updates"] = []
-            step += 1
-            observation["step"] = step
-            print(",".join(actions))
-            print("D_FINISH")
 def agent(observation, configuration):
     global game_state
 
@@ -82,3 +53,37 @@ def agent(observation, configuration):
         actions = actions + new_actions
     
     return actions
+
+def read_input():
+    """
+    Reads input from stdin
+    """
+    try:
+        return input()
+    except EOFError as eof:
+        raise SystemExit(eof)
+step = 0
+class Observation(Dict[str, any]):
+    def __init__(self, player=0): 
+        self.player = player
+        # self.updates = []
+        # self.step = 0
+observation = Observation()
+observation["updates"] = []
+observation["step"] = 0
+player_id = 0
+while True:
+    inputs = read_input()
+    observation["updates"].append(inputs)
+    
+    if step == 0:
+        player_id = int(observation["updates"][0])
+        observation.player = player_id
+    if inputs == "D_DONE":
+        actions = agent(observation, config)
+        observation["updates"] = []
+        step += 1
+        observation["step"] = step
+        print(",".join(actions))
+        print("D_FINISH")
+

@@ -7,7 +7,7 @@ import pickle
 @dataclass
 class UnitRuleWeights:
     weights : List[float] = field(
-        default_factory = lambda: [0.0, 1.0, 1.0, 2.0, 0.1, 0.2, 1.0, 1.0]
+        default_factory = lambda: [0.0, 1.0, 1.0, 2.0, 0.1, 0.2, 1.0, 0.75]
     )
 
 @dataclass 
@@ -17,7 +17,7 @@ class Hyperparams():
     resource_collect_weight : float = 0.025
 
     # Value of resource cell when building
-    resource_build_weight : float = 0.25
+    resource_build_weight : float = 0.35
 
     # Value of citytile cell when building
     citytile_build_weight : float = 0.25
@@ -35,10 +35,10 @@ class Hyperparams():
     max_carts : int = 0
 
     # distance decay exponent
-    distance_decay : float =5.0
+    distance_decay : float = 3.5
 
     worker_rule_weights : UnitRuleWeights = UnitRuleWeights(
-        [0.0, 1.0, 0.25, 1.0, 0.5, 0.2, 1.0, 1.0]
+        [0.0, 1.0, 0.25, 1.0, 0.5, 0.2, 0.5, 0.75]
     )
 
     cart_rule_weights : UnitRuleWeights = UnitRuleWeights(

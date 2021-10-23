@@ -220,3 +220,18 @@ map_action_to_minimum_dist = {
 def action_to_minimum_dist(action):
     action = action.split(';')[0]
     return map_action_to_minimum_dist[action]
+
+map_role_to_rules = {
+    'builder': worker_rules,
+    'collector': worker_rules,
+    'cart': cart_rules
+}
+
+map_worker_to_role = {}
+
+def role_to_rules(role : str):
+    return map_role_to_rules[role]
+
+def get_percentage_of_role():
+    pass
+

@@ -1,10 +1,11 @@
 
-from utils import get_unit_dict, UNIT_TYPES
+from utils import get_unit_dict, get_turns_to_night, UNIT_TYPES
 
 def cities_work(player, opponent, game_state, configuration):
     hparams = configuration['hparams']
     actions = []
-    can_build_unit = len(player.units) < player.city_tile_count
+    can_build_unit = (len(player.units) < player.city_tile_count
+                  and utils.get_turns_to_night(game_state) > 0)
     for k, city in player.cities.items():
         for city_tile in city.citytiles:
             if not city_tile.can_act():
