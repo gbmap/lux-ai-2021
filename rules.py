@@ -14,7 +14,8 @@ from hyperparams import UnitRuleWeights
 #     rule_build,             = 1.0
 #     rule_avoid_units,       = 0.5
 #     rule_avoid_field_if_no_fuel, =  0.5
-#     rule_avoid_other_target_positions, = 0.75
+#     rule_avoid_other_target_positions, = 0.75,
+#     rule_avoid_city_tile_if_building = 1.0
 # ]
 
 def generate_rule_array(weights : UnitRuleWeights) -> List[Tuple[Any, float]]:
@@ -221,7 +222,7 @@ def rule_avoid_city_tile_if_building(
     hparams
 ):
     if worker.id not in worker_actions:
-        return (0.0, 'move')
+        return (0.0, 'build')
 
     cell = game_state.map.get_cell_by_pos(pos)
 
@@ -230,9 +231,9 @@ def rule_avoid_city_tile_if_building(
     is_pos_citytile = cell.citytile is not None
 
     if last_action_is_build and is_pos_citytile:
-        return (-1.0, 'move')
+        return (-1.0, 'build')
 
-    return (0.0, 'move')
+    return (0.0, 'build')
 
 def rule_transfer_to_cart(
     player,
@@ -305,8 +306,9 @@ def rule_avoid_far_cells(
     worker_actions,
     hparams
 ):
-    td = -utils.normalized_distance(game_state,worker.pos, pos)
-    return (td, 'move')
+    v = decay_distance(game_state, cell_value, posA, posB, distance_decay)
+    d = -utils.normalized_distance(game_state,worker.pos, pos)
+    return (d*hparams.distance_decay, 'move')
 
 def decay_distance(game_state, cell_value, posA, posB, distance_decay):
     dist = utils.normalized_distance(game_state, posA, posB)
@@ -322,5 +324,6 @@ rule_array = [
     rule_build,
     rule_avoid_units,
     rule_avoid_field_if_no_fuel,
-    rule_avoid_other_target_positions
+    rule_avoid_other_target_positions,
+    rule_avoid_city_tile_if_building,
 ]

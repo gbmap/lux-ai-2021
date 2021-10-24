@@ -197,7 +197,7 @@ def get_cell_value_for_movement(
     )
 
     if are_directions_inverted(dir_to_new_pos, dir_to_target_pos):
-        log(f'Directions inverted {dir_to_new_pos}, {dir_to_target_pos}')
+        #log(f'Directions inverted {dir_to_new_pos}, {dir_to_target_pos}')
         return value*2.0
 
     return value

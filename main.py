@@ -10,12 +10,13 @@ from utils import log
 
 from worker_logic import units_work
 from city_logic import cities_work
-from hyperparams import Hyperparams
+from hyperparams import Hyperparams, load
 
 DIRECTIONS = Constants.DIRECTIONS
 game_state = None
 config = {
-    'hparams': Hyperparams()
+    'hparams': Hyperparams(),
+    'use_roles': True
 }
 
 def agent(observation, configuration):

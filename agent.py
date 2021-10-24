@@ -14,9 +14,6 @@ from hyperparams import Hyperparams
 
 DIRECTIONS = Constants.DIRECTIONS
 game_state = None
-config = {
-    'hparams': Hyperparams()
-}
 
 def agent(observation, configuration):
     global game_state

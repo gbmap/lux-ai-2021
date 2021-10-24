@@ -41,7 +41,7 @@ def get_action(
     rule_action   = cell_rule_data[1]
     target_pos    = cell_rule_data[3]
 
-    log(f'[TURN {game_state.turn}] [WORKER {worker.id} at {worker.pos}] [ACTION {rule_action}] [VALUE {rule_value}] at {target_pos} ({rule_function.__name__})')
+    #log(f'[TURN {game_state.turn}] [WORKER {worker.id} at {worker.pos}] [ACTION {rule_action}] [VALUE {rule_value}] at {target_pos} ({rule_function.__name__})')
 
     return target_pos, rule_action
 

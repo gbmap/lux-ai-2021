@@ -13,11 +13,11 @@ RESOURCE_TYPES = GAME_CONSTANTS["RESOURCE_TYPES"]
 RESOURCE_TO_FUEL_RATE = GAME_CONSTANTS["PARAMETERS"]["RESOURCE_TO_FUEL_RATE"]
 UNIT_TYPES = GAME_CONSTANTS["UNIT_TYPES"]
 
-#logging.basicConfig(filename='log.log',level=logging.DEBUG)
+logging.basicConfig(filename='log.log',level=logging.DEBUG)
 
 def log(msg):
-    pass
-    #logging.info(msg)
+    #pass
+    logging.info(msg)
 
 dirs = [
     DIRECTIONS.NORTH,

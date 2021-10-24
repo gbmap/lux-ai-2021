@@ -7,7 +7,7 @@ import pickle
 @dataclass
 class UnitRuleWeights:
     weights : List[float] = field(
-        default_factory = lambda: [0.0, 1.0, 1.0, 2.0, 0.1, 0.2, 1.0, 0.75]
+        default_factory = lambda: [0.0, 1.0, 0.25, 1.0, 0.5, 0.2, 0.5, 0.75, 0.0]
     )
 
 @dataclass 
@@ -38,12 +38,28 @@ class Hyperparams():
     distance_decay : float = 3.5
 
     worker_rule_weights : UnitRuleWeights = UnitRuleWeights(
-        [0.0, 1.0, 0.25, 1.0, 0.5, 0.2, 0.5, 0.75]
+        [0.0, 1.0, 0.25, 1.0, 0.5, 0.2, 0.5, 0.75, 0.0]
     )
 
     cart_rule_weights : UnitRuleWeights = UnitRuleWeights(
-        [1.0, 0.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0]
+        [1.0, 0.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0]
     )
+
+    role_distribution : Dict[str, float] = field(default_factory=lambda:{
+        'builder': 0.8,
+        'collector': 0.2,
+        'clown': 0.0
+    })
+
+    role_rules : Dict[str, UnitRuleWeights] = field(default_factory=lambda:{
+        'builder': UnitRuleWeights(
+            [0.0, 0.75, 0.0, 1.0, 0.5, 0.5, 0.75, 0.75]
+        ),
+        'collector': UnitRuleWeights(
+            [0.0, 0.95, 1.0, 0.1, 0.5, 0.5, 0.75, 0.0]
+        ),
+        'clown': UnitRuleWeights()
+    })
 
     def __repr__(self):
         s = 'Hyperparameters ('

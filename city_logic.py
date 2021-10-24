@@ -5,7 +5,7 @@ def cities_work(player, opponent, game_state, configuration):
     hparams = configuration['hparams']
     actions = []
     can_build_unit = (len(player.units) < player.city_tile_count
-                  and utils.get_turns_to_night(game_state) > 0)
+                  and get_turns_to_night(game_state) > 0)
     for k, city in player.cities.items():
         for city_tile in city.citytiles:
             if not city_tile.can_act():

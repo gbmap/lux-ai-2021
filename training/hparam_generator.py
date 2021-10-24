@@ -63,7 +63,13 @@ def save_agent(
     agent_filename = f'{agent_name}.agent'
     hparams.save(agent_filename, hp)
     with open(f'{agent_name}.py', 'w') as f:
-        f.write(main_template.replace('<file>', agent_filename))
+        f.write(get_source_file(agent_filename))
+
+def get_source_file(filename:str):
+    with open(f'main_agent1.py', 'r') as f:
+        txt = f.read()
+        return txt.replace('Hyperparams()', f'load(\'{filename}\')')
+
 
 if __name__ == '__main__':
     hparams_space, n_dimensions = generate_values()
